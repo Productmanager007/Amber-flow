@@ -105,6 +105,7 @@ export async function POST(req: Request) {
     let followupNumber = 0;
     let slackThreadId;
     let extractionText = text;
+    let extracted: any = {};
     
     if (existingThread) {
       console.log("Existing thread found, creating follow-up.");
@@ -161,7 +162,6 @@ export async function POST(req: Request) {
       const extractedStr = extractCompletion.choices[0]?.message?.content || '{}';
       console.log("AI Extraction Result:", extractedStr);
       
-      let extracted;
       try {
         extracted = JSON.parse(extractedStr);
       } catch(e) {

@@ -37,6 +37,7 @@ export default function WhatsAppIntegration({ kamId }: { kamId: string }) {
       }
     }, 5000);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kamId, status]);
 
   const handleConnect = async () => {
