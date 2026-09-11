@@ -57,7 +57,7 @@ export async function handleApproveOnly(formData: FormData) {
 
   const { data: approval } = await supabase
     .from('approvals')
-    .update({ status: 'approved' })
+    .update({ status: 'approved', sent_at: new Date().toISOString() })
     .eq('id', approvalId)
     .select('student_id, slack_threads(slack_channel_id, slack_thread_ts)')
     .single();
@@ -103,7 +103,7 @@ export async function handleSendToWhatsApp(formData: FormData) {
 
   const { data: approval } = await supabase
     .from('approvals')
-    .update({ status: 'approved' })
+    .update({ status: 'approved', sent_at: new Date().toISOString() })
     .eq('id', approvalId)
     .select('student_id, message, slack_threads(slack_channel_id, slack_thread_ts)')
     .single();
@@ -211,7 +211,7 @@ export async function handleReject(formData: FormData) {
 
   const { data: approval } = await supabase
     .from('approvals')
-    .update({ status: 'rejected', rejection_reason: reason })
+    .update({ status: 'rejected', rejection_reason: reason, sent_at: new Date().toISOString() })
     .eq('id', approvalId)
     .select('student_id, slack_threads(slack_channel_id, slack_thread_ts)')
     .single();
@@ -344,7 +344,7 @@ export async function handleDnpQuickAction(formData: FormData) {
 
   const { data: approval } = await supabase
     .from('approvals')
-    .update({ status: 'rejected' })
+    .update({ status: 'rejected', sent_at: new Date().toISOString() })
     .eq('id', approvalId)
     .select('student_id, students(name)')
     .single();

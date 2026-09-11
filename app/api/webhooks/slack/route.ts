@@ -140,7 +140,7 @@ export async function POST(req: Request) {
       // AI Extraction (using Groq)
       const extractionPrompt = `
         Extract the following information from the message below and output ONLY valid JSON.
-        Required keys: "prospect_id" (extract from the URL if present), "student_name", "partner_name", "status", "notes", "tagged_users".
+        Required keys: "prospect_id" (extract from the URL if present), "student_name", "partner_name", "status", "notes", "tagged_users", "context", "action_type".
         If you can't find a value, use null.
         Important: The partner name is usually indicated by "Partner: [Name]". 
         For example in "Partner: Manu . DNP/", the partner name is "Manu" and the notes are "DNP". Ignore trailing punctuation on the partner name.
@@ -324,10 +324,14 @@ export async function POST(req: Request) {
       student_id: studentId,
       slack_thread_id: slackThreadId,
       raw_slack_context: rawContext,
+      structured_context: extracted.context || null,
+      action_type: extracted.action_type || null,
       message: draftedMessage,
       status: approvalStatus,
       is_followup: isFollowup,
-      followup_number: isFollowup ? followupNumber : null
+      followup_number: isFollowup ? followupNumber : null,
+      slack_received_at: new Date(parseInt(slackTimestamp || String(Date.now() / 1000)) * 1000).toISOString(),
+      draft_ready_at: new Date().toISOString()
     });
     
     if (approvalError) {

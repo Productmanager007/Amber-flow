@@ -13,6 +13,14 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     const startParam = params.start;
     const endParam = params.end;
     
+    const filterLabels: Record<string, string> = { 
+      today: 'Today', 
+      week: 'In the last 7 days', 
+      month: 'In the last month', 
+      year: 'In the last year', 
+      all: 'All time' 
+    };
+    
     // Date math
     const now = new Date();
     let startDate = new Date();
@@ -55,7 +63,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       .eq('status', 'pending')
       .gte('created_at', isoStart)
       .lte('created_at', isoEnd)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(8);
 
     if (e3) throw new Error("pendingItems error: " + JSON.stringify(e3));
 
@@ -72,7 +81,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     // Calculate Average Response Time
     const { data: metricsData, error: e5 } = await supabase
       .from('students')
-      .select('created_at, activities(timestamp, status)')
+      .select('created_at, activities(timestamp, status), approvals(slack_received_at, sent_at, status)')
       .gte('created_at', isoStart)
       .lte('created_at', isoEnd);
 
@@ -82,16 +91,32 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     let resolvedCount = 0;
 
     metricsData?.forEach(student => {
-      const actionActivities = student.activities?.filter((a: any) => 
-        ['Approved', 'Message Sent', 'Rejected', 'DNP Handled', 'Responded', 'Ignored'].includes(a.status)
-      ).sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      let hasValidApproval = false;
+      if (student.approvals && student.approvals.length > 0) {
+        student.approvals.forEach((app: any) => {
+          if (app.sent_at && app.slack_received_at && (app.status === 'approved' || app.status === 'rejected')) {
+             const diffMs = new Date(app.sent_at).getTime() - new Date(app.slack_received_at).getTime();
+             if (diffMs > 0) {
+               totalMs += diffMs;
+               resolvedCount++;
+               hasValidApproval = true;
+             }
+          }
+        });
+      }
 
-      if (actionActivities && actionActivities.length > 0) {
-        const firstAction = actionActivities[0];
-        const diffMs = new Date(firstAction.timestamp).getTime() - new Date(student.created_at).getTime();
-        if (diffMs > 0) {
-          totalMs += diffMs;
-          resolvedCount++;
+      if (!hasValidApproval) {
+        const actionActivities = student.activities?.filter((a: any) => 
+          ['Approved', 'Message Sent', 'Rejected', 'DNP Handled', 'Responded', 'Ignored'].includes(a.status)
+        ).sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+        if (actionActivities && actionActivities.length > 0) {
+          const firstAction = actionActivities[0];
+          const diffMs = new Date(firstAction.timestamp).getTime() - new Date(student.created_at).getTime();
+          if (diffMs > 0) {
+            totalMs += diffMs;
+            resolvedCount++;
+          }
         }
       }
     });
@@ -124,7 +149,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             value={taggedLeads || 0} 
             icon={Users} 
             color="bg-indigo-50 text-indigo-600" 
-            trend={startParam ? "Selected custom range" : `In the last ${filter}`} 
+            trend={startParam ? "Selected custom range" : filterLabels[filter] || filterLabels.today} 
           />
           <KPICard 
             title="Pending Actions" 
@@ -144,7 +169,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col h-full">
-            <h3 className="text-lg font-bold text-slate-800 mb-6">Pending Actions</h3>
+            <h3 className="text-lg font-bold text-slate-800 mb-6">Latest Pending Actions</h3>
             <div className="space-y-4 flex-1">
               {pendingItems?.map((item: any) => {
                 const student = item.students || {};
