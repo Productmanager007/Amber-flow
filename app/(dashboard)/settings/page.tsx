@@ -36,10 +36,10 @@ export default async function SettingsPage() {
           <button className="px-6 py-4 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-600 flex items-center gap-2 bg-indigo-50/50">
             <User className="w-4 h-4" /> Account
           </button>
-          <button type="button" onClick={() => alert('Notifications feature is coming in V2!')} className="px-6 py-4 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center gap-2 transition-colors">
+          <button type="button" title="Notifications feature is coming in V2!" className="px-6 py-4 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center gap-2 transition-colors cursor-not-allowed">
             <Bell className="w-4 h-4" /> Notifications
           </button>
-          <button type="button" onClick={() => alert('Security settings are managed globally by the workspace administrator.')} className="px-6 py-4 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center gap-2 transition-colors">
+          <button type="button" title="Security settings are managed globally by the workspace administrator." className="px-6 py-4 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center gap-2 transition-colors cursor-not-allowed">
             <Shield className="w-4 h-4" /> Security
           </button>
         </div>
