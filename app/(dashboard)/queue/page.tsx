@@ -28,7 +28,7 @@ export default async function QueuePage({ searchParams }: { searchParams: { kam?
   }
 
   // Fetch counsellors separately
-  const partnerIds = [...new Set(rawApprovals?.map(a => a.students?.partners?.id).filter(Boolean))];
+  const partnerIds = Array.from(new Set(rawApprovals?.map(a => a.students?.partners?.id).filter(Boolean)));
   let allCounsellors: any[] = [];
   
   if (partnerIds.length > 0) {
