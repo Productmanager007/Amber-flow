@@ -12,8 +12,10 @@ export default async function SettingsPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   let fullName = "Manu Sharma"
-  if (user?.email) {
-    const { data: teamMember } = await supabase.from('team_members').select('name').eq('email', user.email).single()
+  const userEmail = user?.email || "manu@amberstudent.com"
+  
+  if (userEmail) {
+    const { data: teamMember } = await supabase.from('team_members').select('name').eq('email', userEmail).single()
     if (teamMember?.name) {
       fullName = teamMember.name
     }
@@ -34,10 +36,10 @@ export default async function SettingsPage() {
           <button className="px-6 py-4 text-sm font-semibold text-indigo-600 border-b-2 border-indigo-600 flex items-center gap-2 bg-indigo-50/50">
             <User className="w-4 h-4" /> Account
           </button>
-          <button className="px-6 py-4 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center gap-2 transition-colors">
+          <button type="button" onClick={() => alert('Notifications feature is coming in V2!')} className="px-6 py-4 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center gap-2 transition-colors">
             <Bell className="w-4 h-4" /> Notifications
           </button>
-          <button className="px-6 py-4 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center gap-2 transition-colors">
+          <button type="button" onClick={() => alert('Security settings are managed globally by the workspace administrator.')} className="px-6 py-4 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center gap-2 transition-colors">
             <Shield className="w-4 h-4" /> Security
           </button>
         </div>
@@ -64,7 +66,7 @@ export default async function SettingsPage() {
                 disabled
                 className="w-full px-3 py-2 border border-slate-200 bg-slate-50 rounded-lg text-sm text-slate-500"
               />
-              <input type="hidden" name="email" value={user?.email || ""} />
+              <input type="hidden" name="email" value={userEmail} />
               <p className="text-xs text-slate-400">Email cannot be changed due to security domain restrictions.</p>
             </div>
           </div>

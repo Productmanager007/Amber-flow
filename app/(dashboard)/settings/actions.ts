@@ -57,9 +57,7 @@ export async function disconnectWhatsApp(kamId: string) {
   } catch (error) {
     return { error: 'Failed to connect to gateway' };
   }
-}
-
-import { createClient } from '@/utils/supabase/server';
+import { supabase } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
 
 export async function updateProfile(formData: FormData) {
@@ -68,7 +66,6 @@ export async function updateProfile(formData: FormData) {
   
   if (!fullName || !email) return;
 
-  const supabase = await createClient();
   await supabase.from('team_members').update({ name: fullName }).eq('email', email);
   
   revalidatePath('/settings');
