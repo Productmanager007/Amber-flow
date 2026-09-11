@@ -25,7 +25,7 @@ export function Header() {
         <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
           {greeting}, Manu <span className="text-2xl wave">👋</span>
         </h2>
-        <p className="text-slate-500 mt-1 text-sm font-medium">Here's what's happening with your partnerships today.</p>
+        <p className="text-slate-500 mt-1 text-sm font-medium">Here&apos;s what&apos;s happening with your partnerships today.</p>
       </div>
 
       <div className="flex items-center gap-6">

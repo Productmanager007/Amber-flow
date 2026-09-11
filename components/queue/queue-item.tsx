@@ -448,7 +448,7 @@ export function QueueItem({
                   required
                   className="w-full text-sm p-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-[#25D366] focus:ring-1 focus:ring-[#25D366]"
                 />
-                <p className="text-[10px] text-slate-500">Ensure numbers include the country code without the '+' (e.g. 91 for India).</p>
+                <p className="text-[10px] text-slate-500">Ensure numbers include the country code without the &apos;+&apos; (e.g. 91 for India).</p>
               </div>
 
               <div className="flex flex-col gap-1.5">

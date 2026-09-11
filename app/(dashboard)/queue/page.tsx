@@ -72,7 +72,7 @@ export default async function QueuePage({ searchParams }: { searchParams: { kam?
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Approval Queue</h1>
-          <p className="text-slate-500 text-sm mt-1">Review Slack messages and approve them to be sent to the Partner's WhatsApp group.</p>
+          <p className="text-slate-500 text-sm mt-1">Review Slack messages and approve them to be sent to the Partner&apos;s WhatsApp group.</p>
         </div>
         
         {/* KAM Filter */}

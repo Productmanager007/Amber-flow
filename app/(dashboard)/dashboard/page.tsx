@@ -106,7 +106,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-          <p className="text-slate-500 mt-1">Overview of leads you've been tagged in.</p>
+          <p className="text-slate-500 mt-1">Overview of leads you&apos;ve been tagged in.</p>
         </div>
       </div>
 
