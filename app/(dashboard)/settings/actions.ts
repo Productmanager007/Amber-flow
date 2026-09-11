@@ -1,5 +1,8 @@
 'use server'
 
+import { supabase } from '@/lib/supabase';
+import { revalidatePath } from 'next/cache';
+
 export async function getWhatsAppStatus(kamId: string) {
   const instanceId = process.env.ULTRAMSG_INSTANCE_ID;
   const token = process.env.ULTRAMSG_TOKEN;
@@ -57,8 +60,7 @@ export async function disconnectWhatsApp(kamId: string) {
   } catch (error) {
     return { error: 'Failed to connect to gateway' };
   }
-import { supabase } from '@/lib/supabase';
-import { revalidatePath } from 'next/cache';
+}
 
 export async function updateProfile(formData: FormData) {
   const fullName = formData.get('fullName') as string;
