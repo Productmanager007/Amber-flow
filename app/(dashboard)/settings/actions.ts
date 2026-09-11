@@ -70,5 +70,6 @@ export async function updateProfile(formData: FormData) {
 
   await supabase.from('team_members').update({ name: fullName }).eq('email', email);
   
-  revalidatePath('/settings');
+  // Revalidate the entire layout so the Header updates
+  revalidatePath('/', 'layout');
 }

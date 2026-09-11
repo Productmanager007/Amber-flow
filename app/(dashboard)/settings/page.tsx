@@ -15,7 +15,8 @@ export default async function SettingsPage() {
   const userEmail = user?.email || "manu@amberstudent.com"
   
   if (userEmail) {
-    const { data: teamMember } = await supabase.from('team_members').select('name').eq('email', userEmail).single()
+    const { supabase: globalSupabase } = await import('@/lib/supabase');
+    const { data: teamMember } = await globalSupabase.from('team_members').select('name').eq('email', userEmail).single()
     if (teamMember?.name) {
       fullName = teamMember.name
     }
