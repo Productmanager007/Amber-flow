@@ -66,9 +66,14 @@ export async function updateProfile(formData: FormData) {
   const fullName = formData.get('fullName') as string;
   const email = formData.get('email') as string;
   
-  if (!fullName || !email) return;
-
-  await supabase.from('team_members').update({ name: fullName }).eq('email', email);
+  const { data: existing } = await supabase.from('team_members').select('id').eq('email', email).single();
+  
+  if (existing) {
+    await supabase.from('team_members').update({ name: fullName }).eq('id', existing.id);
+  } else {
+    // Doesn't exist, insert it! 
+    await supabase.from('team_members').insert({ email, name: fullName, role: 'Admin' });
+  }
   
   // Revalidate the entire layout so the Header updates
   revalidatePath('/', 'layout');
