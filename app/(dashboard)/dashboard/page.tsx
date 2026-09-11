@@ -249,9 +249,22 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             </div>
           </div>
         </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  } catch (error: any) {
+    return (
+      <div className="w-full p-8">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-700">
+          <h2 className="text-lg font-bold mb-2">Dashboard Crash</h2>
+          <p className="font-mono text-sm break-all">{error.message || String(error)}</p>
+          <pre className="mt-4 text-xs bg-red-100 p-4 rounded overflow-auto">
+            {error.stack}
+          </pre>
+        </div>
+      </div>
+    )
+  }
 }
 
 function KPICard({ title, value, icon: Icon, color, trend }: { title: string, value: string | number, icon: any, color: string, trend: string }) {
