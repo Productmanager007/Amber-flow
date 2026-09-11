@@ -179,9 +179,9 @@ export function DateRangePicker() {
         <span suppressHydrationWarning>{displayLabel}</span>
         {(startParam || filter !== 'today') && (
           <div 
-            onClick={clearFilter}
+            onClick={(e) => { e.stopPropagation(); applyShortcut('today'); }}
             className="ml-1 p-0.5 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-colors"
-            title="Reset to All Time"
+            title="Reset to Today"
           >
             <X className="w-3.5 h-3.5" />
           </div>
@@ -205,7 +205,7 @@ export function DateRangePicker() {
               </button>
             ))}
             <button 
-              onClick={(e) => clearFilter(e)}
+              onClick={() => applyShortcut('all')}
               className={`col-span-2 py-1.5 px-3 text-xs font-bold rounded-md transition-colors border
                 ${(!startParam && filter === 'all') ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'}
               `}
