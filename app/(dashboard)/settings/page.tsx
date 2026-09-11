@@ -35,9 +35,7 @@ export default async function SettingsPage() {
 
       <SettingsClient initialName={fullName} email={userEmail} />
 
-      {user?.id && (
-        <WhatsAppIntegration kamId={user.id} />
-      )}
+      <WhatsAppIntegration kamId={user?.id || 'demo-kam-id'} />
     </div>
   )
 }
