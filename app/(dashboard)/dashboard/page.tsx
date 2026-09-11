@@ -48,8 +48,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     .from('approvals')
     .select('id, is_followup, followup_number, created_at, students(name, prospect_id, partners(name))')
     .eq('status', 'pending')
-    .order('created_at', { ascending: false })
-    .limit(8);
+    .gte('created_at', isoStart)
+    .lte('created_at', isoEnd)
+    .order('created_at', { ascending: false });
 
   const { data: recentCompletedActivities } = await supabase
     .from('activities')
@@ -57,8 +58,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     .in('status', ['Approved', 'Message Sent', 'Rejected', 'DNP Handled', 'Responded', 'Ignored'])
     .gte('timestamp', isoStart)
     .lte('timestamp', isoEnd)
-    .order('timestamp', { ascending: false })
-    .limit(8);
+    .order('timestamp', { ascending: false });
 
   // Calculate Average Response Time
   const { data: metricsData } = await supabase
