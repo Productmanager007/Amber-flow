@@ -58,19 +58,26 @@ export async function updatePartnerName(id: string, name: string) {
 
 export async function fetchWhatsAppGroups() {
   try {
-    // Return mock groups directly instead of fetching from an internal API route
-    // to avoid network loopback/DNS issues on Vercel
-    const groups = [
-      { id: '1203631908751234@g.us', name: 'Leap Scholar Support' },
-      { id: '1203631908755678@g.us', name: 'AECC Priority Leads' },
-      { id: '1203631908759012@g.us', name: 'IDP Connect' },
-      { id: '1203631908753456@g.us', name: 'maven Global' },
-      { id: '1203631908759999@g.us', name: 'My Custom WA Group' }
-    ];
+    const instanceId = process.env.ULTRAMSG_INSTANCE_ID;
+    const token = process.env.ULTRAMSG_TOKEN;
     
-    return { groups, error: null }
+    if (!instanceId || !token) {
+      return { groups: [], error: 'Gateway credentials missing' };
+    }
+
+    const cleanInstanceId = instanceId.replace(/\/+$/, '');
+    const baseUrl = cleanInstanceId.startsWith('http') ? cleanInstanceId : `https://api.ultramsg.com/${cleanInstanceId}`;
+    
+    const response = await fetch(`${baseUrl}/groups?token=${token}`, { cache: 'no-store' });
+    
+    if (!response.ok) {
+      return { groups: [], error: 'Failed to fetch from Gateway' };
+    }
+
+    const groups = await response.json();
+    return { groups, error: null };
   } catch (error) {
-    console.error('Failed to fetch WhatsApp groups:', error)
-    return { groups: [], error: 'Failed to connect to WhatsApp bot' }
+    console.error('Failed to fetch WhatsApp groups:', error);
+    return { groups: [], error: 'Failed to connect to WhatsApp bot' };
   }
 }

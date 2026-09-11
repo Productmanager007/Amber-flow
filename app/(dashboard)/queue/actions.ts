@@ -1,6 +1,7 @@
 'use server'
 
 import { supabase } from '@/lib/supabase';
+import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { groq } from '@/lib/groq';
 
@@ -31,7 +32,7 @@ export async function handleGenerateDraft(formData: FormData) {
         { role: "system", content: "You are a helpful partnership operations assistant drafting WhatsApp messages." },
         { role: "user", content: draftPrompt }
       ],
-      model: "llama-3.1-8b-instant",
+      model: "groq/compound-mini",
     });
     
     const draftedMessage = draftCompletion.choices[0]?.message?.content || '';
@@ -124,19 +125,33 @@ export async function handleSendToWhatsApp(formData: FormData) {
     
     if (instanceId && token && waGroupId) {
       try {
-        let destination = waGroupId.replace('+', '');
+        let destination = waGroupId.replace('+', '').trim();
         
-        // If the destination is a group link, we must extract the invite code and join the group first 
-        // (or ideally the user should provide the Group ID, but we will handle standard phone numbers perfectly)
-        // Note: For actual group links, UltraMsg might require joining it first. We will try to send.
+        if (!destination.includes('@')) {
+          if (destination.includes('-') || destination.length > 16) {
+             destination += '@g.us';
+          } else {
+             destination += '@c.us';
+          }
+        }
+
+        const authSupabase = await createClient();
+        const { data: { user } } = await authSupabase.auth.getUser();
+        
+        // FEATURE FLAG: Change to false to force all messages through the single-tenant "default" connection
+        const ENABLE_MULTI_TENANT = false; 
+        const kamId = ENABLE_MULTI_TENANT ? (user?.id || 'default') : 'default';
 
         const params = new URLSearchParams({
           token: token,
           to: destination,
-          body: finalMessage
+          body: finalMessage,
+          kamId: kamId
         });
 
-        const response = await fetch(`https://api.ultramsg.com/${instanceId}/messages/chat`, {
+        const cleanInstanceId = instanceId.replace(/\/+$/, '');
+        const baseUrl = cleanInstanceId.startsWith('http') ? cleanInstanceId : `https://api.ultramsg.com/${cleanInstanceId}`;
+        const response = await fetch(`${baseUrl}/messages/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: params.toString()
@@ -256,13 +271,23 @@ export async function handleCreateWaGroup(formData: FormData) {
       const numberArray = groupNumbers.split(',').map(n => n.replace('+', '').trim()).filter(n => n);
       const cleanContacts = numberArray.join(',');
       
+      const authSupabase = await createClient();
+      const { data: { user } } = await authSupabase.auth.getUser();
+      
+      // FEATURE FLAG: Change to false to force all messages through the single-tenant "default" connection
+      const ENABLE_MULTI_TENANT = false; 
+      const kamId = ENABLE_MULTI_TENANT ? (user?.id || 'default') : 'default';
+
       const createParams = new URLSearchParams({
         token: token,
         group_name: groupName,
-        contacts: cleanContacts
+        contacts: cleanContacts,
+        kamId: kamId
       });
 
-      const createResponse = await fetch(`https://api.ultramsg.com/${instanceId}/groups/create`, {
+      const cleanInstanceId = instanceId.replace(/\/+$/, '');
+      const baseUrl = cleanInstanceId.startsWith('http') ? cleanInstanceId : `https://api.ultramsg.com/${cleanInstanceId}`;
+      const createResponse = await fetch(`${baseUrl}/groups/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: createParams.toString()
@@ -280,10 +305,11 @@ export async function handleCreateWaGroup(formData: FormData) {
          const msgParams = new URLSearchParams({
            token: token,
            to: createdGroupId,
-           body: groupMessage
+           body: groupMessage,
+           kamId: kamId
          });
 
-         const msgResponse = await fetch(`https://api.ultramsg.com/${instanceId}/messages/chat`, {
+         const msgResponse = await fetch(`${baseUrl}/messages/chat`, {
            method: 'POST',
            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
            body: msgParams.toString()
@@ -333,13 +359,25 @@ export async function handleDnpQuickAction(formData: FormData) {
     
     if (instanceId && token && waGroupId) {
       try {
+        let destination = waGroupId.replace('+', '').trim();
+        
+        if (!destination.includes('@')) {
+          if (destination.includes('-') || destination.length > 16) {
+             destination += '@g.us';
+          } else {
+             destination += '@c.us';
+          }
+        }
+
         const params = new URLSearchParams({
           token: token,
-          to: waGroupId.replace('+', ''),
+          to: destination,
           body: dnpMessage
         });
 
-        const response = await fetch(`https://api.ultramsg.com/${instanceId}/messages/chat`, {
+        const cleanInstanceId = instanceId.replace(/\/+$/, '');
+        const baseUrl = cleanInstanceId.startsWith('http') ? cleanInstanceId : `https://api.ultramsg.com/${cleanInstanceId}`;
+        const response = await fetch(`${baseUrl}/messages/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: params.toString()

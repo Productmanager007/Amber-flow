@@ -5,7 +5,8 @@ import {
   Settings,
   HelpCircle,
   Network,
-  Bot
+  Bot,
+  Users
 } from 'lucide-react';
 
 export function Sidebar() {
@@ -38,6 +39,16 @@ export function Sidebar() {
           <Link href="/mappings" className="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors">
             <Network className="w-5 h-5" />
             <span>Channel Mappings</span>
+          </Link>
+
+          <Link href="/ignored" className="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors">
+            <ListChecks className="w-5 h-5 opacity-60" />
+            <span>Ignored Messages</span>
+          </Link>
+
+          <Link href="/team" className="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors">
+            <Users className="w-5 h-5" />
+            <span>Team Settings</span>
           </Link>
 
           <Link href="/settings" className="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors">

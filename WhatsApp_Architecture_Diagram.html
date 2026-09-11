@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Tenant WhatsApp Gateway Architecture</title>
+    <script type="module">
+      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.esm.min.mjs';
+      mermaid.initialize({ 
+          startOnLoad: true, 
+          theme: 'base',
+          themeVariables: {
+              primaryColor: '#e0e7ff',
+              primaryBorderColor: '#6366f1',
+              primaryTextColor: '#1e1b4b',
+              lineColor: '#64748b',
+              secondaryColor: '#f1f5f9',
+              tertiaryColor: '#fff'
+          }
+      });
+    </script>
+    <style>
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+            padding: 40px; 
+            background: #f8fafc; 
+        }
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 50px; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); 
+        }
+        h1 { 
+            text-align: center; 
+            color: #0f172a; 
+            margin-bottom: 50px;
+            font-size: 2.5rem;
+            font-weight: 800;
+        }
+        .mermaid { 
+            display: flex; 
+            justify-content: center; 
+        }
+        .print-btn {
+            display: block;
+            margin: 0 auto 30px auto;
+            padding: 12px 24px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .print-btn:hover {
+            background: #4338ca;
+        }
+        @media print {
+            .print-btn { display: none; }
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; max-width: 100%; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>POAI WhatsApp Gateway Architecture</h1>
+        <button class="print-btn" onclick="window.print()">Save as PDF / Print</button>
+        <div class="mermaid">
+sequenceDiagram
+    autonumber
+    
+    actor KAM as Key Account Manager
+    participant VercelUI as POAI Vercel UI
+    participant VercelAPI as POAI Backend
+    participant Gateway as Node.js Gateway
+    participant Memory as Gateway Memory Map
+    participant WA as WhatsApp Servers
+
+    rect rgb(234, 243, 255)
+    note right of KAM: Phase 1: Device Pairing (Settings Page)
+    KAM->>VercelUI: Clicks "Generate QR Code"
+    VercelUI->>Gateway: POST /sessions/create { kamId: 'user123' }
+    Gateway->>WA: makeWASocket(user123)
+    WA-->>Gateway: Returns raw QR string
+    Gateway-->>VercelUI: Returns QR string
+    VercelUI-->>KAM: Renders QR Code dynamically
+    KAM->>KAM: Scans QR code with Phone
+    WA-->>Gateway: Connection Authorized!
+    Gateway->>Memory: Saves Socket to sessions.get('user123')
+    end
+
+    rect rgb(240, 253, 244)
+    note right of KAM: Phase 2: Multi-Tenant Message Routing
+    KAM->>VercelUI: Clicks "Approve" in Queue
+    VercelUI->>VercelAPI: Submit Form
+    VercelAPI->>VercelAPI: Extracts kamId from Supabase Auth
+    VercelAPI->>Gateway: POST /messages/chat { kamId: 'user123' }
+    
+    Gateway->>Memory: Look up Socket for 'user123'
+    
+    alt Socket Found & Ready
+        Memory-->>Gateway: Returns KAM's dedicated Socket
+        Gateway->>WA: socket.sendMessage(to, body)
+        WA-->>Gateway: Message Sent!
+        Gateway-->>VercelAPI: 200 OK
+        VercelAPI-->>VercelUI: UI Updates to "Sent"
+    else Socket Missing (Fallback Mode)
+        Memory-->>Gateway: Undefined
+        Gateway->>WA: (Uses 'default' single-tenant socket)
+    end
+    end
+        </div>
+    </div>
+</body>
+</html>

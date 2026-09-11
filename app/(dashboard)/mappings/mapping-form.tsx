@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { updateMapping, deletePartner, updatePartnerName } from './actions'
-import { Check, Save, Trash2, Edit2, X, Phone, Users } from 'lucide-react'
+import { Check, Save, Trash2, Edit2, X, Phone, Users, Settings } from 'lucide-react'
+import Link from 'next/link'
 
 export function MappingForm({ 
   partner 
@@ -80,11 +81,20 @@ export function MappingForm({
           </span>
         </div>
 
-        <div className="col-span-5 text-sm text-slate-600 truncate pr-2">
+        <div className="col-span-4 text-sm text-slate-600 truncate pr-2">
           {currentDestination}
         </div>
 
-        <div className="col-span-1 text-right flex items-center justify-end gap-1">
+        <div className="col-span-2 text-right flex items-center justify-end gap-1">
+          {isGroup && (
+            <Link 
+              href={`/mappings/${partner.id}`}
+              className="inline-flex items-center justify-center p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+              title="Manage Counsellors"
+            >
+              <Settings className="w-4 h-4" />
+            </Link>
+          )}
           <button
             onClick={() => setIsEditing(true)}
             className="inline-flex items-center justify-center p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
@@ -147,7 +157,7 @@ export function MappingForm({
         ) : (
           <input
             type="text"
-            placeholder="Group Invite Link..."
+            placeholder="Group Invite Link or ID (e.g., 1234@g.us)..."
             value={whatsappGroup}
             onChange={(e) => setWhatsappGroup(e.target.value)}
             className="w-full px-2 py-1.5 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"

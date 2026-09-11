@@ -144,6 +144,7 @@ export async function POST(req: Request) {
         If you can't find a value, use null.
         Important: The partner name is usually indicated by "Partner: [Name]". 
         For example in "Partner: Manu . DNP/", the partner name is "Manu" and the notes are "DNP". Ignore trailing punctuation on the partner name.
+        Crucial: "tagged_users" must contain the raw Slack ID tag (e.g. "<@U12345678>") if present in the message. Do not remove the brackets or @ symbol.
         Message: "${extractionText}"
       `;
 
@@ -153,7 +154,7 @@ export async function POST(req: Request) {
           { role: "system", content: "You are a JSON-only data extraction bot." },
           { role: "user", content: extractionPrompt }
         ],
-        model: "llama-3.1-8b-instant",
+        model: "groq/compound-mini",
         response_format: { type: "json_object" }
       });
 
@@ -181,10 +182,10 @@ export async function POST(req: Request) {
           .from('partners')
           .select('id')
           .ilike('name', `%${extracted.partner_name}%`)
-          .maybeSingle();
+          .limit(1);
         
-        if (partnerData) {
-          partnerId = partnerData.id;
+        if (partnerData && partnerData.length > 0) {
+          partnerId = partnerData[0].id;
         } else {
            console.log("Partner not found. Sending Slack notification and ignoring.");
            
@@ -211,6 +212,29 @@ export async function POST(req: Request) {
       const prospect_id = extracted.prospect_id || Math.floor(100000 + Math.random() * 900000).toString();
 
       console.log("New thread, creating student and thread record.");
+      
+      // Look up KAM from tagged_users
+      let kamId = null;
+      if (extracted.tagged_users) {
+        // Handle cases where the model might return a string array or comma separated string
+        const tagRaw = Array.isArray(extracted.tagged_users) ? extracted.tagged_users[0] : extracted.tagged_users;
+        const cleanTag = tagRaw?.replace('<@', '').replace('>', '').trim();
+        
+        if (cleanTag) {
+          console.log("Looking up KAM with Slack ID:", cleanTag);
+          const { data: kamData } = await supabase
+            .from('team_members')
+            .select('id')
+            .eq('slack_id', cleanTag)
+            .single();
+            
+          if (kamData) {
+            kamId = kamData.id;
+            console.log("Assigned KAM ID:", kamId);
+          }
+        }
+      }
+
       const { data: student, error: studentError } = await supabase
         .from('students')
         .upsert(
@@ -218,6 +242,7 @@ export async function POST(req: Request) {
             prospect_id,
             name: extracted.student_name || 'Unknown Lead',
             partner_id: partnerId,
+            kam_id: kamId,
             status: extracted.status || 'New',
             notes: extracted.notes
           },
@@ -277,6 +302,13 @@ export async function POST(req: Request) {
     // Skipped per user request - drafts are now generated on-demand via the Queue UI
     const draftedMessage = '';
 
+    // Detect multiple links
+    const urlRegex = /https?:\/\/[^\s>\|]+/g;
+    const links = text.match(urlRegex) || [];
+    // Slack adds links like <http://...|Text>
+    const uniqueLinks = Array.from(new Set(links));
+    const isMultiLink = uniqueLinks.length > 1;
+
     // 9. Insert Approval Queue with raw slack context
     const teamId = body.team_id;
     const ts = body.event?.ts;
@@ -286,12 +318,14 @@ export async function POST(req: Request) {
       rawContext += `\n\nSLACK_URL:https://slack.com/archives/${channelId}/p${ts.replace('.', '')}`;
     }
 
+    const approvalStatus = isMultiLink ? 'ignored' : 'pending';
+
     const { error: approvalError } = await supabase.from('approvals').insert({
       student_id: studentId,
       slack_thread_id: slackThreadId,
       raw_slack_context: rawContext,
       message: draftedMessage,
-      status: 'pending',
+      status: approvalStatus,
       is_followup: isFollowup,
       followup_number: isFollowup ? followupNumber : null
     });

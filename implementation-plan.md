@@ -69,3 +69,11 @@ This document outlines the step-by-step, phased execution plan to build the Part
 * **10.1 Queue & WhatsApp Routing:** Ensure approved messages in the queue correctly route to the Partner's saved WhatsApp Group ID.
 * **10.2 DNP Quick Actions:** Add a feature to instantly draft and send a WhatsApp message for leads marked as "DNP" (Did Not Pick) directly from the dashboard/queue.
 * **10.3 Mappings & Settings:** Maintain the simplified views to map partners to their respective WhatsApp Group IDs and numbers.
+
+## Phase 11: Multi-User KAM Architecture
+**Goal:** Track, assign, and filter leads by Key Account Managers (KAMs) with Admin management controls.
+* **11.1 Team Management DB:** Establish the `team_members` schema mapping `slack_id` to actual KAM profiles.
+* **11.2 Admin UI:** Create the `/team` settings panel for Admins to add and remove KAMs from the system.
+* **11.3 Webhook Auto-Assignment:** Update the Groq Slack extraction prompt to capture tagged Slack IDs (e.g., `<@U1234>`) and cross-reference them with the database to automatically attach KAMs to incoming leads.
+* **11.4 Queue Filtering:** Enhance the Approval Queue with dynamic KAM badges and a dropdown filter allowing users to segment leads by individual KAMs.
+

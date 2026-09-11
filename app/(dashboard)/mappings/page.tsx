@@ -38,8 +38,8 @@ export default async function MappingsPage() {
         <div className="grid grid-cols-12 gap-4 p-4 border-b border-slate-200 bg-slate-100 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:grid">
           <div className="col-span-3">Partner Name</div>
           <div className="col-span-3 text-center">Type</div>
-          <div className="col-span-5"><Phone className="w-3 h-3 inline mr-1 text-[#25D366]"/> / <Users className="w-3 h-3 inline mr-1 text-[#25D366]"/> Destination</div>
-          <div className="col-span-1 text-right">Action</div>
+          <div className="col-span-4"><Phone className="w-3 h-3 inline mr-1 text-[#25D366]"/> / <Users className="w-3 h-3 inline mr-1 text-[#25D366]"/> Destination</div>
+          <div className="col-span-2 text-right">Action</div>
         </div>
         
         <MappingsClient partners={partners || []} />

@@ -1,0 +1,54 @@
+﻿sequenceDiagram
+    autonumber
+    
+    actor User as Partnership User
+    participant Slack as Slack Channel
+    participant Vercel as POAI Webhook
+    participant Groq as Groq AI (LLaMA)
+    participant DB as Supabase
+    participant Dash as POAI Dashboard
+    participant API as UltraMsg API
+    participant WA as WhatsApp (Partner)
+
+    %% Lead Capture Flow
+    Note over User, DB: Phase 1: Lead Capture
+    User->>Slack: Mentions @POAI with Lead info & Partner Name
+    Slack->>Vercel: Triggers Slack Webhook Event
+    Vercel->>Groq: Sends message text for JSON extraction
+    Groq-->>Vercel: Returns extracted JSON (Student Name, Partner Name, etc.)
+    Vercel->>DB: Searches for Partner by Name
+    DB-->>Vercel: Returns Partner Record & ID
+    Vercel->>DB: Inserts Lead into Approvals Queue
+    Vercel->>Slack: Replies "Lead captured and added to queue!"
+
+    %% Dashboard Management
+    Note over Dash, WA: Phase 2: AI Drafting & Destination Selection
+    User->>Dash: Opens Approval Queue
+    Dash->>DB: Fetches pending leads, partners, and counsellors
+    DB-->>Dash: Displays lead details
+    
+    opt Generates Draft Message
+        User->>Dash: Clicks "Generate Draft"
+        Dash->>Groq: Requests WhatsApp draft based on lead notes
+        Groq-->>Dash: Returns professional WhatsApp draft
+        Dash->>DB: Saves drafted message
+    end
+
+    User->>Dash: Selects Destination Dropdown
+    Note right of Dash: User chooses either the "WhatsApp Group"<br/>OR an individual "Counsellor"
+
+    %% Delivery Flow
+    Note over Dash, WA: Phase 3: WhatsApp Delivery
+    User->>Dash: Clicks "Send to WA"
+    Dash->>Dash: Formats Destination (appends @g.us or @c.us)
+    Dash->>API: POST /messages/chat with Destination & Body
+    
+    alt Billing Issue / Formatting Error
+        API-->>Dash: Returns Error (e.g., Unpaid Instance)
+        Dash->>User: Displays Error in UI / Server Logs
+    else Success
+        API-->>Dash: Returns Success Response
+        Dash->>DB: Updates Lead Status to "Approved"
+        Dash->>Slack: Posts success confirmation to original thread
+        API->>WA: Delivers WhatsApp Message to Partner/Counsellor
+    end

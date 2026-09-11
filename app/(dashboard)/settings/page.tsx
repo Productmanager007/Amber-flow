@@ -1,10 +1,15 @@
 import { Settings as SettingsIcon, Bell, Shield, User } from 'lucide-react'
+import { createClient } from '@/utils/supabase/server'
+import WhatsAppIntegration from './whatsapp-integration'
 
 export const metadata = {
   title: 'Settings | POAI'
 }
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   return (
     <div className="w-full space-y-8">
       <div>
@@ -45,7 +50,7 @@ export default function SettingsPage() {
               <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Email Address</label>
               <input 
                 type="email" 
-                defaultValue="manu@amberstudent.com" 
+                defaultValue={user?.email || "manu@amberstudent.com"} 
                 disabled
                 className="w-full px-3 py-2 border border-slate-200 bg-slate-50 rounded-lg text-sm text-slate-500"
               />
@@ -62,6 +67,11 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {user?.id && (
+        <WhatsAppIntegration kamId={user.id} />
+      )}
     </div>
   )
 }
+

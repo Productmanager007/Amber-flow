@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POAI End-to-End Workflow Architecture</title>
+    <script type="module">
+      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.esm.min.mjs';
+      mermaid.initialize({ 
+          startOnLoad: true, 
+          theme: 'base',
+          themeVariables: {
+              primaryColor: '#f8fafc',
+              primaryBorderColor: '#0f172a',
+              primaryTextColor: '#0f172a',
+              lineColor: '#475569',
+              secondaryColor: '#f1f5f9',
+              tertiaryColor: '#fff'
+          }
+      });
+    </script>
+    <style>
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+            padding: 40px; 
+            background: #f1f5f9; 
+        }
+        .container { 
+            max-width: 1600px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 50px; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); 
+        }
+        h1 { 
+            text-align: center; 
+            color: #0f172a; 
+            margin-bottom: 50px;
+            font-size: 2.5rem;
+            font-weight: 800;
+        }
+        .mermaid { 
+            display: flex; 
+            justify-content: center; 
+        }
+        .print-btn {
+            display: block;
+            margin: 0 auto 30px auto;
+            padding: 12px 24px;
+            background: #0f172a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .print-btn:hover {
+            background: #1e293b;
+        }
+        @media print {
+            .print-btn { display: none; }
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; max-width: 100%; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>POAI: End-to-End System Workflow</h1>
+        <button class="print-btn" onclick="window.print()">Save as PDF / Print</button>
+        <div class="mermaid">
+sequenceDiagram
+    autonumber
+    
+    actor Ops as Operations Team (Slack)
+    actor KAM as Key Account Manager
+    participant Slack as Slack Servers
+    participant Vercel as POAI Backend (Next.js)
+    participant DB as Supabase Database
+    participant LLM as Groq AI (Llama)
+    participant Gateway as Node.js WhatsApp Gateway
+    participant WA as WhatsApp Partners
+
+    rect rgb(24efea, 240, 255)
+    note right of Ops: Phase 1: Request Ingestion (Slack)
+    Ops->>Slack: Types `/poai-request` in channel
+    Slack->>Vercel: POST /api/webhooks/slack
+    Vercel->>DB: Inserts new "Pending Approval" row
+    Vercel-->>Slack: Returns 200 OK
+    Slack-->>Ops: Shows "Request sent to KAM" receipt
+    end
+
+    rect rgb(255, 247, 237)
+    note right of Ops: Phase 2: AI Drafting & Review (Vercel Dashboard)
+    KAM->>Vercel: Opens POAI Queue Dashboard
+    Vercel->>DB: Fetches Pending Approvals
+    DB-->>Vercel: Returns Queue Data
+    Vercel-->>KAM: Displays requests requiring action
+    
+    KAM->>Vercel: Clicks "Generate Draft"
+    Vercel->>LLM: POST /chat/completions (Prompt + Context)
+    LLM-->>Vercel: Returns Professional WhatsApp Draft
+    Vercel->>DB: Saves drafted message to row
+    Vercel-->>KAM: Displays editable draft to KAM
+    KAM->>Vercel: Edits draft if needed
+    end
+
+    rect rgb(240, 253, 244)
+    note right of Ops: Phase 3: Multi-Tenant Dispatch (WhatsApp Gateway)
+    KAM->>Vercel: Clicks "Approve & Send"
+    Vercel->>DB: Updates row status to "Approved"
+    
+    Vercel->>Gateway: POST /messages/chat { kamId, groupID, message }
+    Gateway->>Gateway: Resolves active KAM Socket (kamId)
+    Gateway->>WA: Broadcasts message via WebSocket
+    WA-->>Gateway: Message Delivered
+    Gateway-->>Vercel: 200 OK (Message Sent)
+    
+    Vercel->>Slack: POST /chat.postMessage (Thread Reply)
+    Slack-->>Ops: "✅ Approved! Message forwarded to partner."
+    end
+        </div>
+    </div>
+</body>
+</html>

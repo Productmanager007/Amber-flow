@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: whatsapp-api-gateway
+    env: node
+    rootDir: whatsapp-bot
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: PORT
+        value: 3001
+      - key: API_TOKEN
+        value: poai_local_token_123
