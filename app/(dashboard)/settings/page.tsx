@@ -1,6 +1,7 @@
 import { Settings as SettingsIcon, Bell, Shield, User } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import WhatsAppIntegration from './whatsapp-integration'
+import { updateProfile } from './actions'
 
 export const metadata = {
   title: 'Settings | POAI'
@@ -9,6 +10,14 @@ export const metadata = {
 export default async function SettingsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+
+  let fullName = "Manu Sharma"
+  if (user?.email) {
+    const { data: teamMember } = await supabase.from('team_members').select('name').eq('email', user.email).single()
+    if (teamMember?.name) {
+      fullName = teamMember.name
+    }
+  }
 
   return (
     <div className="w-full space-y-8">
@@ -33,15 +42,16 @@ export default async function SettingsPage() {
           </button>
         </div>
 
-        <div className="p-8 space-y-8">
+        <form action={updateProfile} className="p-8 space-y-8">
           <div className="max-w-md space-y-4">
             <h3 className="font-semibold text-slate-900">Profile Information</h3>
             
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Full Name</label>
               <input 
+                name="fullName"
                 type="text" 
-                defaultValue="Manu Sharma" 
+                defaultValue={fullName} 
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
@@ -54,6 +64,7 @@ export default async function SettingsPage() {
                 disabled
                 className="w-full px-3 py-2 border border-slate-200 bg-slate-50 rounded-lg text-sm text-slate-500"
               />
+              <input type="hidden" name="email" value={user?.email || ""} />
               <p className="text-xs text-slate-400">Email cannot be changed due to security domain restrictions.</p>
             </div>
           </div>
@@ -61,11 +72,11 @@ export default async function SettingsPage() {
           <hr className="border-slate-100" />
           
           <div className="flex justify-end">
-            <button className="px-6 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors">
+            <button type="submit" className="px-6 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors">
               Save Changes
             </button>
           </div>
-        </div>
+        </form>
       </div>
 
       {user?.id && (
