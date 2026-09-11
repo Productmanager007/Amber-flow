@@ -55,6 +55,9 @@ export async function handleApproveOnly(formData: FormData) {
   const approvalId = formData.get('approvalId') as string;
   if (!approvalId) return;
 
+  const { data: current } = await supabase.from('approvals').select('status').eq('id', approvalId).single();
+  if (!current || current.status !== 'pending') return { success: false, error: 'Already processed' };
+
   const { data: approval } = await supabase
     .from('approvals')
     .update({ status: 'approved', sent_at: new Date().toISOString() })
@@ -100,6 +103,9 @@ export async function handleSendToWhatsApp(formData: FormData) {
   const approvalId = formData.get('approvalId') as string;
   const waGroupId = formData.get('waGroupId') as string;
   if (!approvalId) return;
+
+  const { data: current } = await supabase.from('approvals').select('status').eq('id', approvalId).single();
+  if (!current || current.status !== 'pending') return { success: false, error: 'Already processed' };
 
   const { data: approval } = await supabase
     .from('approvals')
@@ -208,6 +214,9 @@ export async function handleReject(formData: FormData) {
   const approvalId = formData.get('approvalId') as string;
   const reason = formData.get('reason') as string || 'No reason provided';
   if (!approvalId) return;
+
+  const { data: current } = await supabase.from('approvals').select('status').eq('id', approvalId).single();
+  if (!current || current.status !== 'pending') return { success: false, error: 'Already processed' };
 
   const { data: approval } = await supabase
     .from('approvals')
@@ -341,6 +350,9 @@ export async function handleDnpQuickAction(formData: FormData) {
   const approvalId = formData.get('approvalId') as string;
   const waGroupId = formData.get('waGroupId') as string;
   if (!approvalId) return;
+
+  const { data: current } = await supabase.from('approvals').select('status').eq('id', approvalId).single();
+  if (!current || current.status !== 'pending') return { success: false, error: 'Already processed' };
 
   const { data: approval } = await supabase
     .from('approvals')
