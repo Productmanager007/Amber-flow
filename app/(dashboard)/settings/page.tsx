@@ -6,7 +6,7 @@ export const metadata = {
 
 export default function SettingsPage() {
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="w-full space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
           <SettingsIcon className="w-6 h-6 text-indigo-600" />

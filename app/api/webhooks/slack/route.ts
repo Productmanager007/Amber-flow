@@ -98,7 +98,7 @@ export async function POST(req: Request) {
       .from('slack_threads')
       .select('*')
       .eq('slack_thread_ts', threadTs)
-      .single();
+      .maybeSingle();
 
     let studentId;
     let isFollowup = false;
@@ -181,7 +181,7 @@ export async function POST(req: Request) {
           .from('partners')
           .select('id')
           .ilike('name', `%${extracted.partner_name}%`)
-          .single();
+          .maybeSingle();
         
         if (partnerData) {
           partnerId = partnerData.id;
