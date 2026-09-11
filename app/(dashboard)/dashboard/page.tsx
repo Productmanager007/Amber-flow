@@ -206,37 +206,45 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                     }
                   }
                 }
-                  </div>
-                </>
-              );
 
-              return slackUrl ? (
-                <a key={act.id} href={slackUrl} target="_blank" rel="noopener noreferrer" className="group relative flex flex-col justify-center p-4 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-all hover:shadow-sm">
-                  {InnerContent}
-                </a>
-              ) : (
-                <div key={act.id} className="flex flex-col justify-center p-4 rounded-xl bg-slate-50 border border-slate-200">
-                  <div className="flex justify-between items-start mb-1">
-                    <p className="font-bold text-slate-900 truncate">{displayName}</p>
-                    <span className="shrink-0 text-xs text-slate-400">{new Date(act.timestamp).toLocaleDateString()}</span>
-                  </div>
-                  <p className="text-sm text-slate-500 mb-2">{partner.name || 'Unknown Partner'}</p>
-                  <div className="flex items-start gap-2">
-                    <div className="shrink-0 mt-0.5">
-                      <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
+                const InnerContent = (
+                  <>
+                    <div className="flex justify-between items-start mb-1 pr-10">
+                      <p className="font-bold text-slate-900 truncate">{displayName}</p>
+                      <span className="shrink-0 text-xs text-slate-400">{new Date(act.timestamp).toLocaleDateString()}</span>
                     </div>
-                    <span className="text-xs font-medium text-slate-700 leading-snug">
-                      {act.action}
-                    </span>
+                    <p className="text-sm text-slate-600 mb-2">{partner.name || 'Unknown Partner'}</p>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md ${
+                        act.status === 'Approved' ? 'bg-indigo-100 text-indigo-700' :
+                        act.status === 'Message Sent' ? 'bg-indigo-100 text-indigo-700' :
+                        act.status === 'Responded' ? 'bg-emerald-100 text-emerald-700' :
+                        act.status === 'DNP Handled' ? 'bg-purple-100 text-purple-700' :
+                        act.status === 'Ignored' ? 'bg-slate-200 text-slate-700' :
+                        'bg-rose-100 text-rose-700'
+                      }`}>
+                        {act.action}
+                      </span>
+                    </div>
+                  </>
+                );
+
+                return (
+                  <div key={act.id} className="group flex flex-col justify-center p-4 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 transition-all relative">
+                    {slackUrl && (
+                      <a href={slackUrl} target="_blank" rel="noopener noreferrer" className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-2 bg-white rounded-lg shadow-sm hover:shadow border border-slate-200 text-indigo-600 z-10">
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    )}
+                    {InnerContent}
                   </div>
-                </div>
-              );
-            })}
-            {(!recentCompletedActivities || recentCompletedActivities.length === 0) && (
-              <p className="text-center text-slate-500 py-8 text-sm">No recent activity found.</p>
-            )}
+                );
+              })}
+              {(!recentCompletedActivities || recentCompletedActivities.length === 0) && (
+                <p className="text-center text-slate-500 py-8 text-sm">No recent activity found.</p>
+              )}
+            </div>
           </div>
-        </div>
         
         <div>
            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
